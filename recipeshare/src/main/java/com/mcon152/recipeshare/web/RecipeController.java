@@ -23,7 +23,7 @@ public class RecipeController {
      */
     @PostMapping
     public Recipe addRecipe(@RequestBody Recipe recipe) {
-        recipe.setId(counter.incrementAndGet());
+        recipe.setId(Long.valueOf(counter.incrementAndGet()));
         recipes.add(recipe);
         return recipe;
     }
@@ -79,7 +79,17 @@ public class RecipeController {
      */
     @PutMapping("/{id}")
     public Recipe updateRecipe(@PathVariable long id, @RequestBody Recipe updatedRecipe) {
-        throw new UnsupportedOperationException("Update recipe not implemented");
+        for (int i = 0; i < recipes.size(); i++) {
+            Recipe existingRecipe = recipes.get(i);
+            if (existingRecipe.getId() == id) {
+                // Keep the same ID
+                updatedRecipe.setId(Long.valueOf(id));
+                recipes.set(i, updatedRecipe);
+                return updatedRecipe;
+            }
+        }
+        // Not found — optionally could throw a 404 error instead of returning null
+        return null;
     }
 
     /**
@@ -91,6 +101,23 @@ public class RecipeController {
      */
     @PatchMapping("/{id}")
     public Recipe patchRecipe(@PathVariable long id, @RequestBody Recipe partialRecipe) {
-        throw new UnsupportedOperationException("Update recipe not implemented");
-    }
-}
+        for (Recipe currentRecipe : recipes) {
+            if (currentRecipe.getId() == id) {
+                // Update only non-null fields (skip nulls)
+                if (partialRecipe.getTitle() != null) {
+                    currentRecipe.setTitle(partialRecipe.getTitle());
+                }
+                if (partialRecipe.getDescription() != null) {
+                    currentRecipe.setDescription(partialRecipe.getDescription());
+                }
+                if (partialRecipe.getIngredients() != null) {
+                    currentRecipe.setIngredients(partialRecipe.getIngredients());
+                }
+                if (partialRecipe.getInstructions() != null) {
+                    currentRecipe.setInstructions(partialRecipe.getInstructions());
+                }
+                return currentRecipe;
+            }
+        }
+        return null;
+    }}
